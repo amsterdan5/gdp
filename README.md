@@ -29,14 +29,13 @@ GDP项目说明：
     - [5.2 PHP-FPM日志](#52-php-fpm日志)
     - [5.3 MySQL日志](#53-mysql日志)
 - [6.数据库管理](#6数据库管理)
-    - [6.1 phpMyAdmin](#61-phpmyadmin)
-    - [6.2 phpRedisAdmin](#62-phpredisadmin)
+    - [6.1 phpRedisAdmin](#61-phpredisadmin)
 - [7.在正式环境中安全使用](#7在正式环境中安全使用)
 - [8.常见问题](#8常见问题)
-    - [8.1 如何在PHP代码中使用curl？](#81-如何在php代码中使用curl)
-    - [8.2 Docker使用cron定时任务](#82-Docker使用cron定时任务)
-    - [8.3 Docker容器时间](#83-Docker容器时间)
-    - [8.4 如何连接MySQL和Redis服务器](#84-如何连接MySQL和Redis服务器)
+    - [8.1 Docker使用cron定时任务](#81-Docker使用cron定时任务)
+    - [8.2 Docker容器时间](#82-Docker容器时间)
+    - [8.3 如何连接MySQL和Redis服务器](#83-如何连接MySQL和Redis服务器)
+    - [8.4 容器内的php如何连接宿主机MySQL](#84-容器内的php如何连接宿主机MySQL)
 
 
 ## 1.目录结构
@@ -454,7 +453,7 @@ $ redis-cli -h127.0.0.1
 ```
 这里`host`参数不能用localhost是因为它默认是通过sock文件与mysql通信，而容器与主机文件系统已经隔离，所以需要通过TCP方式连接，所以需要指定IP。
 
-### 8.5 容器内的php如何连接宿主机MySQL
+### 8.4 容器内的php如何连接宿主机MySQL
 1.宿主机执行`ifconfig docker0`得到`inet`就是要连接的`ip`地址
 ```sh
 $ ifconfig docker0
