@@ -2,8 +2,7 @@ ARG GO_VERSION
 FROM golang:${GO_VERSION}
 
 ARG TZ
-
-LABEL maintainer=""
+ARG GO_DEFAULT_API_PORT
 
 # 设置时区
 RUN apk --no-cache add tzdata \
@@ -13,12 +12,14 @@ RUN apk --no-cache add tzdata \
 RUN apk --no-cache add curl git
 
 ENV GOPROXY https://goproxy.cn,direct
+ENV GO111MODULE on
 
 # 安装 goctl protoc protoc-gen-go protoc-gen-go-grpc
 USER root
-RUN curl -L -o /tmp/protoc.zip https://github.com/protocolbuffers/protobuf/releases/download/v3.19.1/protoc-3.19.1-linux-x86_64.zip && \
-    unzip -d /tmp/protoc /tmp/protoc.zip && \
-    mv /tmp/protoc/bin/protoc $GOPATH/bin && \
+COPY ./pkg /tmp/pkg
+RUN unzip -d /tmp/pkg/protoc /tmp/pkg/protoc-3.19.1.zip && \
+    mv /tmp/pkg/protoc/bin/protoc $GOPATH/bin && \
+    rm -rf /tmp/pkg && \
     go install github.com/zeromicro/go-zero/tools/goctl@latest && \
     go install google.golang.org/protobuf/cmd/protoc-gen-go@latest && \
     go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest
@@ -27,16 +28,7 @@ RUN curl -L -o /tmp/protoc.zip https://github.com/protocolbuffers/protobuf/relea
 ENV PATH $GOPATH/bin:$PATH
 
 # 设置工作目录
-WORKDIR /usr/src/code
+WORKDIR /go/src/code
 
 # api
-EXPOSE 8000
-EXPOSE 8001
-EXPOSE 8002
-EXPOSE 8003
-
-# rpc
-EXPOSE 9000
-EXPOSE 9001
-EXPOSE 9002
-EXPOSE 9003
+EXPOSE ${GO_DEFAULT_API_PORT}

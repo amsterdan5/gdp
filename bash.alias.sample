@@ -4,6 +4,7 @@ alias dphp='docker exec -it gdp_php /bin/sh'
 alias dmysql='docker exec -it gdp_mysql /bin/bash'
 alias dredis='docker exec -it gdp_redis /bin/sh'
 alias dnode='docker exec -it gdp_node /bin/sh'
+alias dgo='docker exec -it gdp_go /bin/sh'
 
 # php7 cli
 php () {
@@ -59,4 +60,17 @@ composer56 () {
         --volume $(pwd):/app \
         --workdir /app \
         gdp_php56 composer "$@"
+}
+
+# go cli
+go () {
+    tty=
+    tty -s && tty=--tty
+    docker run \
+        $tty \
+        --interactive \
+        --rm \
+        --volume $PWD:/go/src/code:rw \
+        --workdir /go/src/code \
+        gdp_go go "$@"
 }
