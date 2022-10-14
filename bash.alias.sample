@@ -1,0 +1,62 @@
+# GDP alias
+alias dnginx='docker exec -it gdp_nginx /bin/sh'
+alias dphp='docker exec -it gdp_php /bin/sh'
+alias dmysql='docker exec -it gdp_mysql /bin/bash'
+alias dredis='docker exec -it gdp_redis /bin/sh'
+alias dnode='docker exec -it gdp_node /bin/sh'
+
+# php7 cli
+php () {
+    tty=
+    tty -s && tty=--tty
+    docker run \
+        $tty \
+        --interactive \
+        --rm \
+        --volume $PWD:/www:rw \
+        --workdir /www \
+        gdp_php php "$@"
+}
+
+# php5.6 cli
+php56 () {
+    tty=
+    tty -s && tty=--tty
+    docker run \
+        $tty \
+        --interactive \
+        --rm \
+        --volume $PWD:/www:rw \
+        --workdir /www \
+        gdp_php56 php "$@"
+}
+
+# php7 composer
+composer () {
+    tty=
+    tty -s && tty=--tty
+    docker run \
+        $tty \
+        --interactive \
+        --rm \
+        --user www-data:www-data \
+        --volume ~/gdp/data/composer:/tmp/composer \
+        --volume $(pwd):/app \
+        --workdir /app \
+        gdp_php composer "$@"
+}
+
+# php5.6 composer
+composer56 () {
+    tty=
+    tty -s && tty=--tty
+    docker run \
+        $tty \
+        --interactive \
+        --rm \
+        --user www-data:www-data \
+        --volume ~/gdp/data/composer:/tmp/composer \
+        --volume $(pwd):/app \
+        --workdir /app \
+        gdp_php56 composer "$@"
+}
