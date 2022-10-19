@@ -65,7 +65,7 @@ services:
     extra_hosts:                  # 用于访问宿主机
       - "${HOST_MACHINE}:172.17.0.1"
     volumes:
-      - ${SOURCE_DIR}:/www/:rw
+      - ${SOURCE_DIR}/php:/www/:rw
       - ${PHP_PHP_CONF_FILE}:/usr/local/etc/php/php.ini:ro
       - ${PHP_FPM_CONF_FILE}:/usr/local/etc/php-fpm.d/www.conf:rw
       - ${PHP_LOG_DIR}:/var/log/php
@@ -88,7 +88,7 @@ services:
   #   expose:
   #     - 9501
   #   volumes:
-  #     - ${SOURCE_DIR}:/www/:rw
+  #     - ${SOURCE_DIR}/php:/www/:rw
   #     - ${PHP80_PHP_CONF_FILE}:/usr/local/etc/php/php.ini:ro
   #     - ${PHP80_FPM_CONF_FILE}:/usr/local/etc/php-fpm.d/www.conf:rw
   #     - ${PHP80_LOG_DIR}:/var/log/php
@@ -112,7 +112,7 @@ services:
     tty: true         # 让容器保持运行
     stdin_open: true
     volumes:
-      - ${SOURCE_DIR}/go/src:/go/src/code
+      - ${SOURCE_DIR}/go/src:/www/code
     ports:
       - "${GO_DEFAULT_API_PORT}:${GO_DEFAULT_API_PORT}"
     networks:
@@ -146,9 +146,9 @@ services:
     networks:
       - gdp
     environment:
-      MYSQL_USER: "${MYSQL_USER}"                   # 设置 Mysql 用户名称
-      MYSQL_PASSWORD: "${MYSQL_PASSWORD}"           # 设置 Mysql 用户密码
-      MYSQL_ROOT_PASSWORD: "${MYSQL_ROOT_PASSWORD}" # 设置 Mysql root 用户密码
+      MYSQL_ROOT_PASSWORD: "${MYSQL_ROOT_PASSWORD}"
+      MYSQL_USER: "${MYSQL_USER}"
+      MYSQL_PASSWORD: "${MYSQL_PASSWORD}"
       TZ: "$TZ"
 
   # mysql5:
@@ -216,10 +216,6 @@ services:
       - TZ=${TZ}
       - ALLOW_NONE_AUTHENTICATION=yes
       - ETCD_ADVERTISE_CLIENT_URLS=http://etcd:2379
-    command:
-      - "--data-dir=/etcd_data"
-    volumes:
-      - ${DATA_DIR}/etcd:/etcd_data:rw
     ports:
       - "${ETCD_PORT}:2379"
     networks:
