@@ -28,12 +28,12 @@ scrape_configs:
     static_configs:
       - targets: ["localhost:9090"]
 
-  # 我们自己的商城项目配置
-  - job_name: 'xxx'
-    static_configs:
-      # 目标的采集地址
-      - targets: ['golang:端口号']
-        labels:
-          # 自定义标签
-          app: 'user-api'
-          env: 'test'
+  # # 服务
+  # - job_name: 'service name'
+  #   static_configs:
+  #     # 采集地址
+  #     - targets: ['gdp_go:9090']
+  #       labels:
+  #         # 标签
+  #         app: 'user-api'
+  #         env: 'test'
