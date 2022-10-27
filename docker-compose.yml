@@ -12,10 +12,9 @@ services:
         NGINX_VERSION: nginx:${NGINX_VERSION}
         CONTAINER_PACKAGE_URL: ${CONTAINER_PACKAGE_URL}
         NGINX_INSTALL_APPS: ${NGINX_INSTALL_APPS}
-    container_name: ${PACKAGE}_nginx
+    container_name: ${PACKAGE}nginx
     ports:
       - "${NGINX_HTTP_HOST_PORT}:80"
-      - "${NGINX_HTTPS_HOST_PORT}:443"
     volumes:
       - ${SOURCE_DIR}/php:/www/:rw
       - ${NGINX_SSL_CERTIFICATE_DIR}:/ssl:rw
@@ -33,7 +32,7 @@ services:
 
   # openresty:
   #   image:  openresty/openresty:${OPENRESTY_VERSION}
-  #   container_name: ${PACKAGE}_openresty
+  #   container_name: ${PACKAGE}openresty
   #   ports:
   #      - "${OPENRESTY_HTTP_HOST_PORT}:80"
   #      - "${OPENRESTY_HTTPS_HOST_PORT}:443"
@@ -59,7 +58,7 @@ services:
         CONTAINER_PACKAGE_URL: ${CONTAINER_PACKAGE_URL}
         PHP_EXTENSIONS: ${PHP_EXTENSIONS}
         TZ: "$TZ"
-    container_name: ${PACKAGE}_php
+    container_name: ${PACKAGE}php
     expose:
       - 9501
     extra_hosts:                  # 用于访问宿主机
@@ -84,7 +83,7 @@ services:
   #       CONTAINER_PACKAGE_URL: ${CONTAINER_PACKAGE_URL}
   #       PHP_EXTENSIONS: ${PHP80_EXTENSIONS}
   #       TZ: "$TZ"
-  #   container_name: ${PACKAGE}_php80
+  #   container_name: ${PACKAGE}php80
   #   expose:
   #     - 9501
   #   volumes:
@@ -105,7 +104,7 @@ services:
       args:
         GO_VERSION: ${GO_VERSION}
         TZ: "$TZ"
-    container_name: ${PACKAGE}_go
+    container_name: ${PACKAGE}go
     environment:
       - TZ=${TZ}
     privileged: true  # 调用宿主机其他服务
@@ -121,9 +120,9 @@ services:
 
   node:
     image: node:${NODE_VERSION}
-    container_name: ${PACKAGE}_node
+    container_name: ${PACKAGE}node
     environment:
-      - NODE_ENV=production
+      - NODE_ENV=development
     volumes:
       - ${SOURCE_DIR}:/www/:rw
     expose:
@@ -136,7 +135,7 @@ services:
 # 数据库
   mysql:
     image: mysql:${MYSQL_VERSION}
-    container_name: ${PACKAGE}_mysql
+    container_name: ${PACKAGE}mysql
     ports:
       - "${MYSQL_HOST_PORT}:3306"
     volumes:
@@ -153,7 +152,7 @@ services:
 
   # mysql5:
   #   image: mysql:${MYSQL5_VERSION}
-  #   container_name: ${PACKAGE}_mysql5
+  #   container_name: ${PACKAGE}mysql5
   #   ports:
   #     - "${MYSQL5_HOST_PORT}:3306"
   #   volumes:
@@ -168,7 +167,7 @@ services:
 
   redis:
     image: redis:${REDIS_VERSION}
-    container_name: ${PACKAGE}_redis
+    container_name: ${PACKAGE}redis
     ports:
       - "${REDIS_HOST_PORT}:6379"
     volumes:
@@ -183,7 +182,7 @@ services:
 
   memcached:
     image: memcached:${MEMCACHED_VERSION}
-    container_name: ${PACKAGE}_memcached
+    container_name: ${PACKAGE}memcached
     ports:
       - "${MEMCACHED_HOST_PORT}:11211"
     environment:
@@ -193,7 +192,7 @@ services:
 
   mongodb:
     image: mongo:${MONGODB_VERSION}
-    container_name: ${PACKAGE}_mongodb
+    container_name: ${PACKAGE}mongodb
     environment:
         MONGO_INITDB_ROOT_USERNAME: "${MONGODB_INITDB_ROOT_USERNAME}"
         MONGO_INITDB_ROOT_PASSWORD: "${MONGODB_INITDB_ROOT_PASSWORD}"
@@ -211,11 +210,11 @@ services:
   etcd:                                  # 自定义容器名称
     build:
       context: ./services/etcd                    # 指定构建使用的 Dockerfile 文件
-    container_name: ${PACKAGE}_etcd
+    container_name: ${PACKAGE}etcd
     environment:
       - TZ=${TZ}
       - ALLOW_NONE_AUTHENTICATION=yes
-      - ETCD_ADVERTISE_CLIENT_URLS=http://etcd:2379
+      - ETCD_ADVERTISE_CLIENT_URLS=http://gdp_etcd:2379
     ports:
       - "${ETCD_PORT}:2379"
     networks:
@@ -228,7 +227,7 @@ services:
       args:
         ELASTICSEARCH_VERSION: ${ELASTICSEARCH_VERSION}
         ELASTICSEARCH_PLUGINS: ${ELASTICSEARCH_PLUGINS}
-    container_name: ${PACKAGE}_elasticsearch
+    container_name: ${PACKAGE}elasticsearch
     environment:
       - TZ=$TZ
       - discovery.type=single-node
@@ -251,7 +250,7 @@ services:
       args:
         RABBITMQ_VERSION: ${RABBITMQ_VERSION}
         RABBITMQ_PLUGINS: ${RABBITMQ_PLUGINS}
-    container_name: ${PACKAGE}_rabbitmq
+    container_name: ${PACKAGE}rabbitmq
     restart: always
     ports:
       - "${RABBITMQ_HOST_PORT_C}:5672"
@@ -267,7 +266,7 @@ services:
 
   phpredisadmin:
     image: erikdubbelboer/phpredisadmin:latest
-    container_name: ${PACKAGE}_phpredisadmin
+    container_name: ${PACKAGE}phpredisadmin
     ports:
       - "${REDISMYADMIN_HOST_PORT}:80"
     networks:
@@ -279,21 +278,22 @@ services:
       - REDIS_1_PORT=6379
       - TZ=$TZ
 
-  adminmongo:
-    image: mrvautin/adminmongo
-    container_name: ${PACKAGE}_adminmongo
-    ports:
-      - "${ADMINMONGO_HOST_PORT}:1234"
-    environment:
-      - HOST=0.0.0.0
-      - DB_HOST=mongodb
-      - DB_PORT=27017
-    networks:
-      - gdp
+  # adminmongo:
+  #   image: mrvautin/adminmongo
+  #   container_name: ${PACKAGE}adminmongo
+  #   ports:
+  #     - "${ADMINMONGO_HOST_PORT}:1234"
+  #   environment:
+  #     - HOST=0.0.0.0
+  #     - DB_HOST=${PACKAGE}mongodb
+  #     - DB_PORT=27017
+  #   networks:
+  #     - gdp
 
   etcd-manage:
     build:
       context: ./services/etcd-manage
+    container_name: ${PACKAGE}etcd-manage
     environment:
       - TZ=${TZ}
     ports:
@@ -306,10 +306,10 @@ services:
 
   kibana:
     image: kibana:${KIBANA_VERSION}
-    container_name: ${PACKAGE}_kibana
+    container_name: ${PACKAGE}kibana
     environment:
       TZ: "$TZ"
-      elasticsearch.hosts: http://elasticsearch:9200
+      elasticsearch.hosts: http://${PACKAGE}elasticsearch:9200
       I18N_LOCALE: "${KIBANA_I18N_LOCALE}"
     hostname: kibana
     depends_on:
@@ -322,7 +322,7 @@ services:
 
   logstash:
     image: logstash:${LOGSTASH_VERSION}
-    container_name: ${PACKAGE}_logstash
+    container_name: ${PACKAGE}logstash
     hostname: logstash
     restart: always
     depends_on:
@@ -338,7 +338,7 @@ services:
   prometheus:
     build:
       context: ./services/prometheus
-    container_name: ${PACKAGE}_prometheus
+    container_name: ${PACKAGE}prometheus
     environment:
       - TZ=${TZ}
     volumes:
@@ -352,7 +352,7 @@ services:
   grafana:
     build:
       context: ./services/grafana
-    container_name: ${PACKAGE}_grafana
+    container_name: ${PACKAGE}grafana
     environment:
       - TZ=${TZ}
     ports:
@@ -366,7 +366,7 @@ services:
       context: ./services/jaeger
       args:
         JAEGER_VERSION: ${JAEGER_VERSION}
-    container_name: ${PACKAGE}_jaeger
+    container_name: ${PACKAGE}jaeger
     environment:
       - TZ=${TZ}
     ports:
@@ -378,7 +378,7 @@ services:
   dtm:
     build:
       context: ./services/dtm
-    container_name: ${PACKAGE}_dtm
+    container_name: ${PACKAGE}dtm
     environment:
       - TZ=${TZ}
     entrypoint:
@@ -400,7 +400,7 @@ services:
   #       ALPINE_VERSION: alpine:${ALPINE_VERSION}
   #       TZ: "$TZ"
   #       CONTAINER_PACKAGE_URL: ${CONTAINER_PACKAGE_URL}
-  #   container_name: ${PACKAGE}_supervisor
+  #   container_name: ${PACKAGE}supervisor
   #   ports:
   #     - "${SUPERVISOR_HOST_PORT_C}:9001"
   #   volumes:
