@@ -274,7 +274,7 @@ services:
     environment:
       - ADMIN_USER=${REDIS_MANAGE_USERNAME}           # 设置 Redis 可视化管理的用户名称
       - ADMIN_PASS=${REDIS_MANAGE_PASSWORD}           # 设置 Redis 可视化管理的用户密码
-      - REDIS_1_HOST=redis
+      - REDIS_1_HOST=${PACKAGE}redis
       - REDIS_1_PORT=6379
       - TZ=$TZ
 
@@ -321,10 +321,16 @@ services:
       - gdp
 
   logstash:
-    image: logstash:${LOGSTASH_VERSION}
+    build:
+      context: ./services/logstash
+      args:
+        LOGSTASH_VERSION: ${LOGSTASH_VERSION}
     container_name: ${PACKAGE}logstash
     hostname: logstash
     restart: always
+    volumes:
+      - ${LOG_DIR}:/data/logs
+      - ${LOGSTASH_CONF_FILE}:/usr/share/logstash/pipeline/logstash.conf
     depends_on:
       - elasticsearch
     environment:
