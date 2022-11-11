@@ -255,6 +255,8 @@ services:
     ports:
       - "${RABBITMQ_HOST_PORT_C}:5672"
       - "${RABBITMQ_HOST_PORT_S}:15672"
+    volumes:
+      - ${DATA_DIR}/rabbitmq/data:/var/lib/rabbitmq
     environment:
        TZ: "$TZ"
        RABBITMQ_DEFAULT_USER: "${RABBITMQ_DEFAULT_USER}"
