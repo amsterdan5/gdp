@@ -257,10 +257,10 @@ services:
       - "${RABBITMQ_HOST_PORT_S}:15672"
     volumes:
       - ${DATA_DIR}/rabbitmq/data:/var/lib/rabbitmq
+      - ${LOG_DIR}/rabbitmq:/var/log/rabbitmq
+      - ./services/rabbitmq/conf/rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf
     environment:
        TZ: "$TZ"
-       RABBITMQ_DEFAULT_USER: "${RABBITMQ_DEFAULT_USER}"
-       RABBITMQ_DEFAULT_PASS: "${RABBITMQ_DEFAULT_PASS}"
     networks:
       - gdp
 
