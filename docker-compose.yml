@@ -258,13 +258,23 @@ services:
     volumes:
       - ${DATA_DIR}/rabbitmq/data:/var/lib/rabbitmq
       - ${LOG_DIR}/rabbitmq:/var/log/rabbitmq
-      - ./services/rabbitmq/conf/rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf
     environment:
        TZ: "$TZ"
     networks:
       - gdp
 
 # 辅助工具
+
+  elastichd:
+    build:
+      context: ./services/elastichd
+    container_name: ${PACKAGE}elastichd
+    ports:
+      - "${ELASTIC_HD_PORT}:9800"
+    networks:
+      - gdp
+    depends_on:
+      - elasticsearch
 
   phpredisadmin:
     image: erikdubbelboer/phpredisadmin:latest
