@@ -263,6 +263,23 @@ services:
     networks:
       - gdp
 
+  pulsar:
+    build:
+      context: ./services/pulsar
+      args:
+        PULSAR_VERSION: ${PULSAR_VERSION}
+    container_name: ${PACKAGE}pulsar
+    command: bin/pulsar standalone
+    restart: always
+    ports:
+      - "${PULSAR_HOST_PORT_I}:6650"
+      - "${PULSAR_HOST_PORT_S}:8080"
+    volumes:
+      - ${DATA_DIR}/pulsar:/pulsar/data
+      - ./services/pulsar/conf:/pulsar/conf
+    networks:
+      - gdp
+
 # 辅助工具
 
   elastichd:
@@ -410,6 +427,18 @@ services:
     networks:
       - gdp
     restart: always
+
+  pulsar-manager:
+    image: apachepulsar/pulsar-manager:${PULSAR_MANAGER_VERSION}
+    container_name: ${PACKAGE}pulsar-manager
+    restart: always
+    ports:
+      - "${PULSAR_MANAGER_HOST_PORT_H}:9527"
+      - "${PULSAR_MANAGER_HOST_PORT_I}:7750"
+    depends_on:
+      - pulsar
+    environment:
+      - SPRING_CONFIGURATION_FILE=/pulsar-manager/pulsar-manager/application.properties
 
   # supervisor:
   #   build:
