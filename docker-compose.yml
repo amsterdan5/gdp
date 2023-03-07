@@ -207,7 +207,7 @@ services:
     command:
        --auth
 
-  etcd:                                  # 自定义容器名称
+  etcd:
     build:
       context: ./services/etcd                    # 指定构建使用的 Dockerfile 文件
     container_name: ${PACKAGE}etcd
@@ -240,6 +240,21 @@ services:
     ports:
       - "${ELASTICSEARCH_HOST_PORT_C}:9200"
       - "${ELASTICSEARCH_HOST_PORT_S}:9300"
+    networks:
+      - gdp
+
+  postgres:
+    image: postgres:${POSTGRES_VERSION}
+    container_name: ${PACKAGE}_postgres
+    restart: always
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - ALLOW_IP_RANGE=0.0.0.0/0
+    volumes:
+      - ${DATA_DIR}/postgres:/var/lib/postgresql
+    ports:
+      - "${POSTGRES_PORT}:5432"
     networks:
       - gdp
 
