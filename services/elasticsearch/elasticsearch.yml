@@ -8,3 +8,6 @@ discovery.zen.minimum_master_nodes: 1
 
 # 禁止机器学习，此功能使用SSE4.2指令，仅适用于CPU 支持 SSE4.2的机器
 xpack.ml.enabled: false
+
+# 禁用swap 保证性能
+bootstrap.memory_lock: true

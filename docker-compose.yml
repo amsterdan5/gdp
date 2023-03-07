@@ -338,7 +338,7 @@ services:
     container_name: ${PACKAGE}kibana
     environment:
       TZ: "$TZ"
-      elasticsearch.hosts: http://${PACKAGE}elasticsearch:9200
+      ELASTICSEARCH_HOSTS: '["http://${PACKAGE}elasticsearch:9200"]'
       I18N_LOCALE: "${KIBANA_I18N_LOCALE}"
     hostname: kibana
     depends_on:
