@@ -245,7 +245,7 @@ services:
 
   postgres:
     image: postgres:${POSTGRES_VERSION}
-    container_name: ${PACKAGE}_postgres
+    container_name: ${PACKAGE}postgres
     restart: always
     environment:
       - POSTGRES_USER=${POSTGRES_USER}
@@ -297,16 +297,16 @@ services:
 
 # 辅助工具
 
-  elastichd:
-    build:
-      context: ./services/elastichd
-    container_name: ${PACKAGE}elastichd
-    ports:
-      - "${ELASTIC_HD_PORT}:9800"
-    networks:
-      - gdp
-    depends_on:
-      - elasticsearch
+  # elastichd:
+  #   build:
+  #     context: ./services/elastichd
+  #   container_name: ${PACKAGE}elastichd
+  #   ports:
+  #     - "${ELASTIC_HD_PORT}:9800"
+  #   networks:
+  #     - gdp
+  #   depends_on:
+  #     - elasticsearch
 
   phpredisadmin:
     image: erikdubbelboer/phpredisadmin:latest

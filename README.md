@@ -36,6 +36,7 @@ GDP项目说明：
     - [8.2 Docker容器时间](#82-Docker容器时间)
     - [8.3 如何连接MySQL和Redis服务器](#83-如何连接MySQL和Redis服务器)
     - [8.4 容器内的php如何连接宿主机MySQL](#84-容器内的php如何连接宿主机MySQL)
+    - [8.5 pulsar-manager登录](#85pulsar-manager登录)
 
 
 ## 1.目录结构
@@ -473,3 +474,15 @@ docker0: flags=4099<UP,BROADCAST,MULTICAST>  mtu 1500
 ```
 
 3.接着直接php容器使用`172.17.0.1:3306`连接即可
+
+### 8.5 pulsar-manager登录
+1.创建账号登录
+```
+    CSRF_TOKEN=$(curl http://127.0.0.1:7750/pulsar-manager/csrf-token)
+curl \
+    -H "X-XSRF-TOKEN: $CSRF_TOKEN" \
+    -H "Cookie: XSRF-TOKEN=$CSRF_TOKEN;" \
+    -H 'Content-Type: application/json' \
+    -X PUT http://127.0.0.1:7750/pulsar-manager/users/superuser \
+    -d '{"name": "pulsar", "password": "pulsar", "description": "admin", "email": "test@163.com"}'
+```
