@@ -8,7 +8,7 @@ GDP项目说明：
 5. 可一键选配常用服务：
     - 多PHP版本：PHP5.6、PHP7、PHP8
     - Web服务：Nginx、Openresty
-    - 数据库：MySQL5、MySQL8、Redis、memcached、MongoDB、ElasticSearch、Etcd
+    - 数据库：MySQL5、MySQL8、Redis、memcached、MongoDB、ElasticSearch、Etcd、Pulsar
     - 消息队列：RabbitMQ
     - 辅助工具：Kibana、Logstash、phpRedisAdmin、AdminMongo、Etcd-manage、Prometheus、Jeager、Grafana
 
@@ -46,18 +46,22 @@ GDP项目说明：
 ├── data                        数据库数据目录
 │   ├── esdata                  ElasticSearch 数据目录
 │   ├── etcd                    Etcd 数据目录
-│   ├── mongo                   MongoDB 数据目录
-│   ├── mysql                   MySQL8 数据目录
-│   └── mysql5                  MySQL5 数据目录
+│   ├── mongo                   mongo 数据目录
+│   ├── postgres                postgres 数据目录
+│   ├── pulsar                  pulsar 数据目录
+│   ├── rabbitmq                rabbitmq 数据目录
+│   ├── redis                   redis 数据目录
+│   └── mysql                   MySQL 数据目录
 ├── logs                        日志目录
 ├── services                    服务构建文件和配置文件目录
 │   ├── dtm                     分布式管理
 │   ├── elasticsearch           es 配置目录
 │   ├── etcd                    服务注册
-│   ├── etcd-manage             服务注册管理
+│   ├── etcd-manage             etcd 管理
 │   ├── golang                  go 环境
-│   ├── grafana
+│   ├── grafana                 监控可视化
 │   ├── jaeger                  服务追踪
+│   ├── logstash                日志处理
 │   ├── mysql                   Mysql8 配置目录
 │   ├── mysql5                  Mysql5 配置目录
 │   ├── nginx                   Nginx 配置目录
@@ -66,6 +70,7 @@ GDP项目说明：
 │   ├── php56                   PHP5.6 配置目录
 │   ├── php80                   PHP8 配置目录
 │   ├── prometheus              服务监控
+│   ├── pulsar                  pulsar 配置目录
 │   ├── rabbitmq                Rabbitmq 配置目录
 │   ├── redis                   Redis 配置目录
 │   └── supervisor
