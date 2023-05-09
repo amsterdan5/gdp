@@ -373,7 +373,7 @@ services:
     hostname: logstash
     restart: always
     volumes:
-      - ${LOG_DIR}:/data/logs
+      - ${LOGSTASH_LOG_DIR}:/data/logs
       - ${LOGSTASH_CONF_FILE}:/usr/share/logstash/pipeline/logstash.conf
     depends_on:
       - elasticsearch
@@ -454,6 +454,24 @@ services:
       - pulsar
     environment:
       - SPRING_CONFIGURATION_FILE=/pulsar-manager/pulsar-manager/application.properties
+
+  yapi:
+    build:
+      context: ./services/yapi
+      args:
+        YAPI_VERSION: ${YAPI_VERSION}
+    container_name: ${PACKAGE}yapi
+    environment:
+      - LOG_PATH=/tmp/yapi.log
+    ports:
+      - "${YAPI_PORT}:3000"
+    volumes:
+      - ${YAPI_LOG_DIR}:/tmp/yapi.log
+      - ${YAPI_CONF_FILE}:/api/config.json
+    # depends_on:
+    #   - mongodb
+    networks:
+      - gdp
 
   # supervisor:
   #   build:
