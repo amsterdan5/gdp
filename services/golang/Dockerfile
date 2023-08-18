@@ -9,13 +9,13 @@ RUN apt-get install -y tzdata \
     && ln -snf "/usr/share/zoneinfo/${TZ}" /etc/localtime \
     && echo "${TZ}" > /etc/timezone
 
-# 安装必要的软件包和依赖包
+# 安装必要的软件包和依赖包 生成唯一码
 RUN sed -i 's/deb.debian.org/mirrors.tuna.tsinghua.edu.cn/' /etc/apt/sources.list && \
     sed -i 's/security.debian.org/mirrors.tuna.tsinghua.edu.cn/' /etc/apt/sources.list && \
     sed -i 's/security-cdn.debian.org/mirrors.tuna.tsinghua.edu.cn/' /etc/apt/sources.list && \
     apt-get update && \
     apt-get upgrade -y && \
-    apt-get install -y apt-utils unzip
+    apt-get install -y apt-utils unzip uuid-runtime
 
 # 安装 protoc
 COPY ./pkg/protoc-3.19.1.zip /tmp

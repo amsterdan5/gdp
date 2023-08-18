@@ -25,7 +25,7 @@ services:
       - ${NGINX_FASTCGI_PARAMS}:/etc/nginx/fastcgi_params:ro
       - ${NGINX_LOG_DIR}:/var/log/nginx/:rw
     environment:
-      TZ: "$TZ"
+      TZ: "${TZ}"
     restart: always
     networks:
       - gdp
@@ -45,7 +45,7 @@ services:
   #      - ${OPENRESTY_CONF_FASTCGIPARAMS_FILE}:/usr/local/openresty/nginx/conf/fastcgi_params:ro
   #      - ${OPENRESTY_LOG_DIR}:/var/log/nginx/:rw
   #   environment:
-  #     TZ: "$TZ"
+  #     TZ: "${TZ}"
   #   networks:
   #     - gdp
 
@@ -57,7 +57,7 @@ services:
         PHP_VERSION: php:${PHP_VERSION}-fpm-alpine
         CONTAINER_PACKAGE_URL: ${CONTAINER_PACKAGE_URL}
         PHP_EXTENSIONS: ${PHP_EXTENSIONS}
-        TZ: "$TZ"
+        TZ: "${TZ}"
     container_name: ${PACKAGE}php
     expose:
       - 9501
@@ -82,7 +82,7 @@ services:
   #       PHP_VERSION: php:${PHP80_VERSION}-fpm-alpine3.13
   #       CONTAINER_PACKAGE_URL: ${CONTAINER_PACKAGE_URL}
   #       PHP_EXTENSIONS: ${PHP80_EXTENSIONS}
-  #       TZ: "$TZ"
+  #       TZ: "${TZ}"
   #   container_name: ${PACKAGE}php80
   #   expose:
   #     - 9501
@@ -103,10 +103,10 @@ services:
       context: ./services/golang
       args:
         GO_VERSION: ${GO_VERSION}
-        TZ: "$TZ"
+        TZ: "${TZ}"
     container_name: ${PACKAGE}go
     environment:
-      - TZ=${TZ}
+      TZ: ${TZ}
     privileged: true  # 调用宿主机其他服务
     tty: true         # 让容器保持运行
     stdin_open: true
@@ -122,7 +122,7 @@ services:
     image: node:${NODE_VERSION}
     container_name: ${PACKAGE}node
     environment:
-      - NODE_ENV=development
+      NODE_ENV: "development"
     volumes:
       - ${SOURCE_DIR}:/www/:rw
     expose:
@@ -148,7 +148,7 @@ services:
       MYSQL_ROOT_PASSWORD: "${MYSQL_ROOT_PASSWORD}"
       MYSQL_USER: "${MYSQL_USER}"
       MYSQL_PASSWORD: "${MYSQL_PASSWORD}"
-      TZ: "$TZ"
+      TZ: "${TZ}"
 
   # mysql5:
   #   image: mysql:${MYSQL5_VERSION}
@@ -163,7 +163,7 @@ services:
   #     - gdp
   #   environment:
   #     MYSQL_ROOT_PASSWORD: "${MYSQL5_ROOT_PASSWORD}"
-  #     TZ: "$TZ"
+  #     TZ: "${TZ}"
 
   redis:
     image: redis:${REDIS_VERSION}
@@ -176,7 +176,7 @@ services:
     restart: always
     entrypoint: ["redis-server", "/etc/redis.conf"]
     environment:
-      TZ: "$TZ"
+      TZ: "${TZ}"
     networks:
       - gdp
 
@@ -196,7 +196,7 @@ services:
     environment:
         MONGO_INITDB_ROOT_USERNAME: "${MONGODB_INITDB_ROOT_USERNAME}"
         MONGO_INITDB_ROOT_PASSWORD: "${MONGODB_INITDB_ROOT_PASSWORD}"
-        TZ: "$TZ"
+        TZ: "${TZ}"
     volumes:
       - ${DATA_DIR}/mongo/data:/data/db:rw
       - ${DATA_DIR}/mongo/key:/mongo:rw
@@ -212,9 +212,9 @@ services:
       context: ./services/etcd                    # 指定构建使用的 Dockerfile 文件
     container_name: ${PACKAGE}etcd
     environment:
-      - TZ=${TZ}
-      - ALLOW_NONE_AUTHENTICATION=yes
-      - ETCD_ADVERTISE_CLIENT_URLS=http://gdp_etcd:2379
+      TZ: "${TZ}"
+      ALLOW_NONE_AUTHENTICATION: "yes"
+      ETCD_ADVERTISE_CLIENT_URLS: "http://gdp_etcd:2379"
     ports:
       - "${ETCD_PORT}:2379"
     networks:
@@ -229,9 +229,9 @@ services:
         ELASTICSEARCH_PLUGINS: ${ELASTICSEARCH_PLUGINS}
     container_name: ${PACKAGE}elasticsearch
     environment:
-      - TZ=$TZ
-      - discovery.type=single-node
-      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+      TZ: "${TZ}"
+      discovery.type: "single-node"
+      ES_JAVA_OPTS: "-Xms512m -Xmx512m"
     volumes:
       - ${DATA_DIR}/esdata:/usr/share/elasticsearch/data
       - ${ELASTICSEARCH_CONF_FILE}:/usr/share/elasticsearch/config/elasticsearch.yml
@@ -248,9 +248,9 @@ services:
     container_name: ${PACKAGE}postgres
     restart: always
     environment:
-      - POSTGRES_USER=${POSTGRES_USER}
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
-      - ALLOW_IP_RANGE=0.0.0.0/0
+      POSTGRES_USER: "${POSTGRES_USER}"
+      POSTGRES_PASSWORD: "${POSTGRES_PASSWORD}"
+      ALLOW_IP_RANGE: "0.0.0.0/0"
     volumes:
       - ${DATA_DIR}/postgres:/var/lib/postgresql
     ports:
@@ -274,7 +274,7 @@ services:
       - ${DATA_DIR}/rabbitmq/data:/var/lib/rabbitmq
       - ${LOG_DIR}/rabbitmq:/var/log/rabbitmq
     environment:
-       TZ: "$TZ"
+       TZ: "${TZ}"
     networks:
       - gdp
 
@@ -316,11 +316,11 @@ services:
     networks:
       - gdp
     environment:
-      - ADMIN_USER=${REDIS_MANAGE_USERNAME}           # 设置 Redis 可视化管理的用户名称
-      - ADMIN_PASS=${REDIS_MANAGE_PASSWORD}           # 设置 Redis 可视化管理的用户密码
-      - REDIS_1_HOST=${PACKAGE}redis
-      - REDIS_1_PORT=6379
-      - TZ=$TZ
+      ADMIN_USER: "${REDIS_MANAGE_USERNAME}"           # 设置 Redis 可视化管理的用户名称
+      ADMIN_PASS: "${REDIS_MANAGE_PASSWORD}"           # 设置 Redis 可视化管理的用户密码
+      REDIS_1_HOST: "${PACKAGE}redis"
+      REDIS_1_PORT: "6379"
+      TZ: "${TZ}"
 
   # adminmongo:
   #   image: mrvautin/adminmongo
@@ -328,9 +328,9 @@ services:
   #   ports:
   #     - "${ADMINMONGO_HOST_PORT}:1234"
   #   environment:
-  #     - HOST=0.0.0.0
-  #     - DB_HOST=${PACKAGE}mongodb
-  #     - DB_PORT=27017
+  #     HOST: "0.0.0.0"
+  #     DB_HOST: "${PACKAGE}mongodb"
+  #     DB_PORT: "27017"
   #   networks:
   #     - gdp
 
@@ -339,7 +339,7 @@ services:
       context: ./services/etcd-manage
     container_name: ${PACKAGE}etcd-manage
     environment:
-      - TZ=${TZ}
+      TZ: "${TZ}"
     ports:
       - "${ETCD_MANAGE_PORT}:8080"                    # 设置容器8080端口映射指定宿主机端口，用于宿主机访问可视化web
     depends_on:                                       # 依赖容器
@@ -352,7 +352,7 @@ services:
     image: kibana:${KIBANA_VERSION}
     container_name: ${PACKAGE}kibana
     environment:
-      TZ: "$TZ"
+      TZ: "${TZ}"
       ELASTICSEARCH_HOSTS: '["http://${PACKAGE}elasticsearch:9200"]'
       I18N_LOCALE: "${KIBANA_I18N_LOCALE}"
     hostname: kibana
@@ -378,7 +378,7 @@ services:
     depends_on:
       - elasticsearch
     environment:
-      TZ: "$TZ"
+      TZ: "${TZ}"
     ports:
       - "${LOGSTASH_HOST_PORT_C}:9600"
       - "${LOGSTASH_HOST_PORT_S}:5044"
@@ -390,7 +390,7 @@ services:
       context: ./services/prometheus
     container_name: ${PACKAGE}prometheus
     environment:
-      - TZ=${TZ}
+      TZ: "${TZ}"
     volumes:
       - ./services/prometheus/prometheus.yml:/opt/bitnami/prometheus/conf/prometheus.yml:rw  # 将 prometheus 配置文件挂载到容器里
     ports:
@@ -404,7 +404,7 @@ services:
       context: ./services/grafana
     container_name: ${PACKAGE}grafana
     environment:
-      - TZ=${TZ}
+      TZ: "${TZ}"
     ports:
       - "${GRAFANA_PORT}:3000"                        # 设置容器3000端口映射指定宿主机端口，用于宿主机访问可视化web
     networks:
@@ -418,7 +418,7 @@ services:
         JAEGER_VERSION: ${JAEGER_VERSION}
     container_name: ${PACKAGE}jaeger
     environment:
-      - TZ=${TZ}
+      TZ: "${TZ}"
     ports:
       - "${JAEGER_PORT}:16686"                        # 设置容器16686端口映射指定宿主机端口，用于宿主机访问可视化web
     networks:
@@ -430,7 +430,7 @@ services:
       context: ./services/dtm
     container_name: ${PACKAGE}dtm
     environment:
-      - TZ=${TZ}
+      TZ: "${TZ}"
     entrypoint:
       - "/app/dtm/dtm"
       - "-c=/app/dtm/configs/config.yaml"
@@ -453,7 +453,7 @@ services:
     depends_on:
       - pulsar
     environment:
-      - SPRING_CONFIGURATION_FILE=/pulsar-manager/pulsar-manager/application.properties
+      SPRING_CONFIGURATION_FILE: "/pulsar-manager/pulsar-manager/application.properties"
 
   yapi:
     build:
@@ -462,7 +462,7 @@ services:
         YAPI_VERSION: ${YAPI_VERSION}
     container_name: ${PACKAGE}yapi
     environment:
-      - LOG_PATH=/tmp/yapi.log
+      LOG_PATH: "/tmp/yapi.log"
     ports:
       - "${YAPI_PORT}:3000"
     volumes:
@@ -478,7 +478,7 @@ services:
   #     context: ./services/supervisor
   #     args:
   #       ALPINE_VERSION: alpine:${ALPINE_VERSION}
-  #       TZ: "$TZ"
+  #       TZ: "${TZ}"
   #       CONTAINER_PACKAGE_URL: ${CONTAINER_PACKAGE_URL}
   #   container_name: ${PACKAGE}supervisor
   #   ports:
