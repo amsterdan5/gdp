@@ -275,6 +275,8 @@ services:
       - ${LOG_DIR}/rabbitmq:/var/log/rabbitmq
     environment:
        TZ: "${TZ}"
+       RABBITMQ_DEFAULT_USER: ${RABBIT_USER}
+       RABBITMQ_DEFAULT_PASS: ${RABBIT_PASS}
     networks:
       - gdp
 
