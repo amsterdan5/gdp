@@ -9,11 +9,16 @@ RUN apt-get install -y tzdata \
     && ln -snf "/usr/share/zoneinfo/${TZ}" /etc/localtime \
     && echo "${TZ}" > /etc/timezone
 
+# # 安装必要的软件包和依赖包 生成唯一码
+# RUN sed -i 's/deb.debian.org/mirrors.tuna.tsinghua.edu.cn/' /etc/apt/sources.list && \
+#     sed -i 's/security.debian.org/mirrors.tuna.tsinghua.edu.cn/' /etc/apt/sources.list && \
+#     sed -i 's/security-cdn.debian.org/mirrors.tuna.tsinghua.edu.cn/' /etc/apt/sources.list && \
+#     apt-get update && \
+#     apt-get upgrade -y && \
+#     apt-get install -y apt-utils unzip uuid-runtime
+
 # 安装必要的软件包和依赖包 生成唯一码
-RUN sed -i 's/deb.debian.org/mirrors.tuna.tsinghua.edu.cn/' /etc/apt/sources.list && \
-    sed -i 's/security.debian.org/mirrors.tuna.tsinghua.edu.cn/' /etc/apt/sources.list && \
-    sed -i 's/security-cdn.debian.org/mirrors.tuna.tsinghua.edu.cn/' /etc/apt/sources.list && \
-    apt-get update && \
+RUN apt-get update && \
     apt-get upgrade -y && \
     apt-get install -y apt-utils unzip uuid-runtime
 
@@ -24,8 +29,8 @@ RUN unzip -d /tmp/protoc /tmp/protoc-3.19.1.zip && \
 
 ENV GOPROXY https://goproxy.cn,direct
 # 安装 goctl protoc-gen-go protoc-gen-go-grpc
-RUN go install github.com/zeromicro/go-zero/tools/goctl@latest && \
-    go install google.golang.org/protobuf/cmd/protoc-gen-go@latest && \
+    # go install github.com/zeromicro/go-zero/tools/goctl@latest && \
+RUN go install google.golang.org/protobuf/cmd/protoc-gen-go@latest && \
     go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest && \
     go env -w GO111MODULE=on
 
