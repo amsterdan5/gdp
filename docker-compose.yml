@@ -349,6 +349,21 @@ services:
     networks:
       - gdp
 
+  emqx:
+    image: emqx/emqx:${EMQX_VERSION}
+    container_name: ${PACKAGE}emqx
+    restart: always
+    ports:
+      - ${EMQX_TCP_PORT}:1883
+      - ${EMQX_WS_PORT}:8083
+      - ${EMQX_DASHBOARD_PORT}:18083
+    volumes:
+      - ${LOG_DIR}/emqx/:/opt/emqx/log
+      - ${DATA_DIR}/emqx/:/opt/emqx/data
+    networks:
+      - gdp
+
+
 # 辅助工具
 
   # elastichd:
