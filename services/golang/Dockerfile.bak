@@ -40,4 +40,4 @@ WORKDIR /www/code
 # api
 EXPOSE ${GO_DEFAULT_API_PORT}
 
-CMD [ "go run ./github.com/amsterdan/test/" ]
+CMD ["tail", "-f", "/dev/null"]
