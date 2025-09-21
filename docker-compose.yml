@@ -112,9 +112,7 @@ services:
     tty: true         # 让容器保持运行
     stdin_open: true
     volumes:
-      - ${SOURCE_DIR}:/www/code
-    ports:
-      - "${GO_DEFAULT_API_PORT}:${GO_DEFAULT_API_PORT}"
+      - ${SOURCE_DIR}:/code
     networks:
       - gdp
     restart: always
@@ -476,6 +474,8 @@ services:
       TZ: "${TZ}"
     ports:
       - "${GRAFANA_PORT}:3000"                        # 设置容器3000端口映射指定宿主机端口，用于宿主机访问可视化web
+    depends_on:
+      - prometheus
     networks:
       - gdp
     restart: always
@@ -575,6 +575,19 @@ services:
       args:
         TZ: "${TZ}"
     container_name: ${PACKAGE}empty
+    environment:
+      TZ: ${TZ}
+    networks:
+      - gdp
+    restart: always
+
+  ai:
+    build:
+      context: ./services/ai
+      args:
+        TZ: "${TZ}"
+    container_name: ${PACKAGE}ai
+    user: "1000:1000"
     environment:
       TZ: ${TZ}
     networks:

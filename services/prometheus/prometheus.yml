@@ -28,12 +28,18 @@ scrape_configs:
     static_configs:
       - targets: ["localhost:9090"]
 
-  # # 服务
-  # - job_name: 'service name'
-  #   static_configs:
-  #     # 采集地址
-  #     - targets: ['gdp_go:9090']
-  #       labels:
-  #         # 标签
-  #         app: 'user-api'
-  #         env: 'test'
+  # # 动态加载
+  # - job_name: "dynamic"
+  #   file_sd_configs:
+  #   - files:
+  #      - "/etc/prometheus/sd_config/*.json"
+
+  # 服务
+  - job_name: 'user'
+    static_configs:
+      # 采集地址
+      - targets: ['gdp_go:8000']
+        labels:
+          # 标签
+          app: 'user-api'
+          env: 'test'
