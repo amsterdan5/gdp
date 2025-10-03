@@ -580,16 +580,3 @@ services:
     networks:
       - gdp
     restart: always
-
-  ai:
-    build:
-      context: ./services/ai
-      args:
-        TZ: "${TZ}"
-    container_name: ${PACKAGE}ai
-    user: "1000:1000"
-    environment:
-      TZ: ${TZ}
-    networks:
-      - gdp
-    restart: always
