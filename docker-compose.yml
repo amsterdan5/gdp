@@ -76,28 +76,28 @@ services:
     networks:
       - gdp
 
-  # php80:
-  #   build:
-  #     context: ./services/php80
-  #     args:
-  #       PHP_VERSION: php:${PHP80_VERSION}-fpm-alpine3.13
-  #       CONTAINER_PACKAGE_URL: ${CONTAINER_PACKAGE_URL}
-  #       PHP_EXTENSIONS: ${PHP80_EXTENSIONS}
-  #       TZ: "${TZ}"
-  #   container_name: ${PACKAGE}php80
-  #   expose:
-  #     - 9501
-  #   volumes:
-  #     - ${SOURCE_DIR}:/www/:rw
-  #     - ${PHP80_PHP_CONF_FILE}:/usr/local/etc/php/php.ini:ro
-  #     - ${PHP80_FPM_CONF_FILE}:/usr/local/etc/php-fpm.d/www.conf:rw
-  #     - ${PHP80_LOG_DIR}:/var/log/php
-  #     - ${DATA_DIR}/composer:/tmp/composer
-  #   restart: always
-  #   cap_add:
-  #     - SYS_PTRACE
-  #   networks:
-  #     - gdp
+  php8:
+    build:
+      context: ./services/php80
+      args:
+        PHP_VERSION: php:${PHP80_VERSION}-fpm-alpine
+        CONTAINER_PACKAGE_URL: ${CONTAINER_PACKAGE_URL}
+        PHP_EXTENSIONS: ${PHP80_EXTENSIONS}
+        TZ: "${TZ}"
+    container_name: ${PACKAGE}php8
+    expose:
+      - 9501
+    volumes:
+      - ${SOURCE_DIR}${PHP_MALL_DIR}:/www/mall:rw
+      - ${PHP80_PHP_CONF_FILE}:/usr/local/etc/php/php.ini:ro
+      - ${PHP80_FPM_CONF_FILE}:/usr/local/etc/php-fpm.d/www.conf:rw
+      - ${PHP80_LOG_DIR}:/var/log/php
+      - ${DATA_DIR}/composer:/tmp/composer
+    restart: always
+    cap_add:
+      - SYS_PTRACE
+    networks:
+      - gdp
 
   golang:
     build:
@@ -580,3 +580,22 @@ services:
     networks:
       - gdp
     restart: always
+
+  # 编译系统
+  ubuntu:
+    platform: linux/amd64
+    build:
+      context: ./services/ubuntu
+      args:
+        UBUNTU_VERSION: ${UBUNTU_VERSION}
+        GO_VERSION: ${GO_VERSION}
+        CONTAINER_PACKAGE_URL: ${CONTAINER_PACKAGE_URL}
+    container_name: ${PACKAGE}ubuntu
+    environment:
+      LOG_PATH: "/tmp/ubuntu.log"
+    # ports:
+    volumes:
+      - ${SOURCE_DIR}:/www:rw
+      - ${UBUNTU_LOG_DIR}:/var/log
+    networks:
+      - gdp

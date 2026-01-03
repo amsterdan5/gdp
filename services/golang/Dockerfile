@@ -1,9 +1,9 @@
 ARG GO_VERSION
-FROM golang:${GO_VERSION}
+FROM golang:${GO_VERSION}-alpine
 
 # 设置环境变量
 ENV CGO_ENABLED=1 \
-    GOARCH=arm64 \
+    GOARCH=amd64 \
     SHELL=/bin/bash
 
 # 安装 Opus 开发库

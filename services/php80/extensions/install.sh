@@ -519,6 +519,9 @@ fi
 
 if [[ -z "${EXTENSIONS##*,redis,*}" ]]; then
     echo "---------- Install redis ----------"
+    # mkdir -p /usr/src/php/ext/redis
+    # curl -L https://github.com/phpredis/phpredis/archive/6.1.0。tar.gz | tar xvz -C /usr/src/php/ext/redis --strip 1
+    # docker-php-ext-install redis
     pecl install redis
     docker-php-ext-enable redis
 fi
