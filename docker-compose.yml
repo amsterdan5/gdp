@@ -361,6 +361,14 @@ services:
     networks:
       - gdp
 
+# 模型工具
+  ollama:
+    image: ollama/ollama:${OLLAMA_VERSION}
+    container_name: ${PACKAGE}ollama
+    volumes:
+      - ${DATA_DIR}/ollama/:/root/.ollama
+    networks:
+      - gdp
 
 # 辅助工具
 
