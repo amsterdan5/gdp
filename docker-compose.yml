@@ -576,6 +576,21 @@ services:
   #   networks:
   #     - gdp
 
+  # docker私有化
+  registry:
+    build:
+      image: registry:2
+      container_name: ${PACKAGE}registry
+    environment:
+      REGISTRY_AUTH: htpasswd
+      REGISTRY_AUTH_HTPASSWD_REALM: ${REGISTRY_AUTH_HTPASSWD_REALM}
+      REGISTRY_AUTH_HTPASSWD_PATH: ${REGISTRY_AUTH_HTPASSWD_PATH}
+      REGISTRY_HTTP_TLS_CERTIFICATE: ${REGISTRY_HTTP_TLS_CERTIFICATE}
+      REGISTRY_HTTP_TLS_KEY: ${REGISTRY_HTTP_TLS_KEY}
+    volumes:
+      - ./data/registry:/var/lib/registry
+    restart: always
+
   # 空容器
   scratch:
     build:
