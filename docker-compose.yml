@@ -578,9 +578,8 @@ services:
 
   # docker私有化
   registry:
-    build:
-      image: registry:2
-      container_name: ${PACKAGE}registry
+    image: registry:2
+    container_name: ${PACKAGE}registry
     environment:
       REGISTRY_AUTH: htpasswd
       REGISTRY_AUTH_HTPASSWD_REALM: ${REGISTRY_AUTH_HTPASSWD_REALM}
@@ -589,7 +588,12 @@ services:
       REGISTRY_HTTP_TLS_KEY: ${REGISTRY_HTTP_TLS_KEY}
     volumes:
       - ./data/registry:/var/lib/registry
+      - ./services/nginx/ssl/registry.sharyoo.cn:/etc/ssl
+    environment:
+      TZ: "${TZ}"
     restart: always
+    networks:
+      - gdp
 
   # 空容器
   scratch:
