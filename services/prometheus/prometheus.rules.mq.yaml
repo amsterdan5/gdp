@@ -1,0 +1,78 @@
+# 由 prometheusrule.mq.yaml 转换的裸机 Prometheus 规则（MQ）
+# 无 MQ 流量时可在 prometheus.standalone.yaml 中注释掉本文件的 rule_files 引用
+groups:
+  - name: aero-mq-recording
+    rules:
+      - record: aero:service:mq_qps_5m
+        expr: sum by (service, system, role, topic, operation) (label_replace(rate({__name__=~".*_mq_messages_total"}[5m]), "service", "$1", "__name__", "(.+)_mq_messages_total"))
+
+      - record: aero:service:mq_err_qps_5m
+        expr: sum by (service, system, role, topic, operation) (label_replace(rate({__name__=~".*_mq_messages_total", status="err"}[5m]), "service", "$1", "__name__", "(.+)_mq_messages_total"))
+
+      - record: aero:service:mq_err_rate_5m
+        expr: aero:service:mq_err_qps_5m / clamp_min(aero:service:mq_qps_5m, 1e-9)
+
+      - record: aero:service:mq_p95_5m
+        expr: histogram_quantile(0.95, sum by (le, service, system, role, topic, operation) (label_replace(rate({__name__=~".*_mq_message_duration_seconds_bucket"}[5m]), "service", "$1", "__name__", "(.+)_mq_message_duration_seconds_bucket")))
+
+  - name: aero-mq-alerts
+    rules:
+      - alert: AeroMQErrorRateWarning
+        expr: aero:service:mq_err_rate_5m > 0.01
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "MQ 错误率偏高（warning）"
+          description: "service={{ $labels.service }} system={{ $labels.system }} role={{ $labels.role }} topic={{ $labels.topic }} op={{ $labels.operation }}，5m 错误率={{ $value }} 超过 1%。"
+          action: "检查消费重试、下游依赖、消息体格式与幂等逻辑。"
+
+      - alert: AeroMQErrorRateCritical
+        expr: aero:service:mq_err_rate_5m > 0.03
+        for: 10m
+        labels:
+          severity: critical
+        annotations:
+          summary: "MQ 错误率偏高（critical）"
+          description: "service={{ $labels.service }} system={{ $labels.system }} role={{ $labels.role }} topic={{ $labels.topic }} op={{ $labels.operation }}，5m 错误率={{ $value }} 超过 3%。"
+          action: "立即降级非核心消费者，启用补偿与重放预案。"
+
+      - alert: AeroMQLatencyP95Warning
+        expr: aero:service:mq_p95_5m > 0.5
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "MQ 处理延迟偏高（warning）"
+          description: "service={{ $labels.service }} system={{ $labels.system }} role={{ $labels.role }} topic={{ $labels.topic }} op={{ $labels.operation }}，P95={{ $value }}s 超过 500ms。"
+          action: "检查消费者并发、批量配置、下游接口性能。"
+
+      - alert: AeroMQLatencyP95Critical
+        expr: aero:service:mq_p95_5m > 1.5
+        for: 10m
+        labels:
+          severity: critical
+        annotations:
+          summary: "MQ 处理延迟偏高（critical）"
+          description: "service={{ $labels.service }} system={{ $labels.system }} role={{ $labels.role }} topic={{ $labels.topic }} op={{ $labels.operation }}，P95={{ $value }}s 超过 1.5s。"
+          action: "立即扩容消费者并限流上游生产，避免积压扩大。"
+
+      - alert: AeroMQProducerSendFailBurst
+        expr: sum by (service, system, topic) (aero:service:mq_err_qps_5m{role="producer"}) > 20
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "MQ 生产侧发送失败突增"
+          description: "service={{ $labels.service }} system={{ $labels.system }} topic={{ $labels.topic }}，5m 错误 QPS 超过 20。"
+          action: "优先检查 broker 连通性、认证凭据与生产重试策略。"
+
+      - alert: AeroMQConsumerHandleFailBurst
+        expr: sum by (service, system, topic) (aero:service:mq_err_qps_5m{role="consumer", operation=~"consume|handle"}) > 20
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "MQ 消费处理失败突增"
+          description: "service={{ $labels.service }} system={{ $labels.system }} topic={{ $labels.topic }}，5m 处理失败 QPS 超过 20。"
+          action: "排查消息格式变更、幂等冲突、下游依赖超时。"

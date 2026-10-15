@@ -1,4 +1,4 @@
-version: '3'
+# version: '3'
 
 networks:
   gdp:
@@ -76,28 +76,28 @@ services:
     networks:
       - gdp
 
-  php8:
-    build:
-      context: ./services/php80
-      args:
-        PHP_VERSION: php:${PHP80_VERSION}-fpm-alpine
-        CONTAINER_PACKAGE_URL: ${CONTAINER_PACKAGE_URL}
-        PHP_EXTENSIONS: ${PHP80_EXTENSIONS}
-        TZ: "${TZ}"
-    container_name: ${PACKAGE}php8
-    expose:
-      - 9501
-    volumes:
-      - ${SOURCE_DIR}${PHP_MALL_DIR}:/www/mall:rw
-      - ${PHP80_PHP_CONF_FILE}:/usr/local/etc/php/php.ini:ro
-      - ${PHP80_FPM_CONF_FILE}:/usr/local/etc/php-fpm.d/www.conf:rw
-      - ${PHP80_LOG_DIR}:/var/log/php
-      - ${DATA_DIR}/composer:/tmp/composer
-    restart: always
-    cap_add:
-      - SYS_PTRACE
-    networks:
-      - gdp
+  # php8:
+  #   build:
+  #     context: ./services/php80
+  #     args:
+  #       PHP_VERSION: php:${PHP80_VERSION}-fpm-alpine
+  #       CONTAINER_PACKAGE_URL: ${CONTAINER_PACKAGE_URL}
+  #       PHP_EXTENSIONS: ${PHP80_EXTENSIONS}
+  #       TZ: "${TZ}"
+  #   container_name: ${PACKAGE}php8
+  #   expose:
+  #     - 9501
+  #   volumes:
+  #     - ${SOURCE_DIR}${PHP_MALL_DIR}:/www/mall:rw
+  #     - ${PHP80_PHP_CONF_FILE}:/usr/local/etc/php/php.ini:ro
+  #     - ${PHP80_FPM_CONF_FILE}:/usr/local/etc/php-fpm.d/www.conf:rw
+  #     - ${PHP80_LOG_DIR}:/var/log/php
+  #     - ${DATA_DIR}/composer:/tmp/composer
+  #   restart: always
+  #   cap_add:
+  #     - SYS_PTRACE
+  #   networks:
+  #     - gdp
 
   golang:
     build:
@@ -208,13 +208,17 @@ services:
        --auth
 
   etcd:
-    build:
-      context: ./services/etcd                    # 指定构建使用的 Dockerfile 文件
+    image: registry.k8s.io/etcd:${ETCD_VERSION}
     container_name: ${PACKAGE}etcd
     environment:
       TZ: "${TZ}"
-      ALLOW_NONE_AUTHENTICATION: "yes"
-      ETCD_ADVERTISE_CLIENT_URLS: "http://gdp_etcd:2379"
+      ETCD_NAME: etcd0
+      ETCD_DATA_DIR: /var/lib/etcd
+      ETCD_LISTEN_CLIENT_URLS: http://0.0.0.0:2379
+      ETCD_ADVERTISE_CLIENT_URLS: http://gdp_etcd:2379
+      ETCD_LISTEN_PEER_URLS: http://0.0.0.0:2380
+      ETCD_INITIAL_ADVERTISE_PEER_URLS: http://gdp_etcd:2380
+      ETCD_INITIAL_CLUSTER: etcd0=http://gdp_etcd:2380
     ports:
       - "${ETCD_PORT}:2379"
     networks:
@@ -468,6 +472,8 @@ services:
       TZ: "${TZ}"
     volumes:
       - ./services/prometheus/prometheus.yml:/opt/bitnami/prometheus/conf/prometheus.yml:rw  # 将 prometheus 配置文件挂载到容器里
+      - ./services/prometheus/prometheus.rules.mq.yml:/opt/bitnami/prometheus/conf/prometheus.rules.mq.yml:rw  # 将 prometheus 配置文件挂载到容器里
+      - ./services/prometheus/prometheus.rules.runtime.yml:/opt/bitnami/prometheus/conf/prometheus.rules.runtime.yml:rw  # 将 prometheus 配置文件挂载到容器里
     ports:
       - "${PROMETHEUS_PORT}:9090"                     # 设置容器9090端口映射指定宿主机端口，用于宿主机访问可视化web
     networks:
@@ -496,8 +502,11 @@ services:
     container_name: ${PACKAGE}jaeger
     environment:
       TZ: "${TZ}"
+      COLLECTOR_OTLP_ENABLED: "true"
+      COLLECTOR_OTLP_GRPC_HOST_PORT: "0.0.0.0:4317"
     ports:
-      - "${JAEGER_PORT}:16686"                        # 设置容器16686端口映射指定宿主机端口，用于宿主机访问可视化web
+      - "${JAEGER_WEB_PORT}:16686"    # 设置容器16686端口映射指定宿主机端口，用于宿主机访问可视化web
+      - "${JAEGER_PORT}:4317"
     networks:
       - gdp
     restart: always
@@ -586,11 +595,10 @@ services:
       REGISTRY_AUTH_HTPASSWD_PATH: ${REGISTRY_AUTH_HTPASSWD_PATH}
       REGISTRY_HTTP_TLS_CERTIFICATE: ${REGISTRY_HTTP_TLS_CERTIFICATE}
       REGISTRY_HTTP_TLS_KEY: ${REGISTRY_HTTP_TLS_KEY}
+      TZ: "${TZ}"
     volumes:
       - ./data/registry:/var/lib/registry
       - ./services/nginx/ssl/registry.sharyoo.cn:/etc/ssl
-    environment:
-      TZ: "${TZ}"
     restart: always
     networks:
       - gdp

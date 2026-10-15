@@ -1,1 +1,1 @@
-FROM bitnami/prometheus
+FROM prom/prometheus

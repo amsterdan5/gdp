@@ -1,0 +1,171 @@
+# 由 prometheusrule.runtime.yaml 转换的裸机 Prometheus 规则（runtime + RPC）
+groups:
+  - name: aero-runtime-recording
+    rules:
+      - record: aero:service:go_goroutines_current
+        expr: label_replace({__name__=~".*_go_goroutines_current"}, "service", "$1", "__name__", "(.+)_go_goroutines_current")
+
+      - record: aero:service:go_gc_pause_5m
+        expr: label_replace(increase({__name__=~".*_go_gc_pause_total_seconds"}[5m]), "service", "$1", "__name__", "(.+)_go_gc_pause_total_seconds")
+
+      - record: aero:service:go_heap_alloc_bytes
+        expr: label_replace({__name__=~".*_go_heap_alloc_bytes"}, "service", "$1", "__name__", "(.+)_go_heap_alloc_bytes")
+
+      - record: aero:service:go_heap_inuse_bytes
+        expr: label_replace({__name__=~".*_go_heap_inuse_bytes"}, "service", "$1", "__name__", "(.+)_go_heap_inuse_bytes")
+
+      - record: aero:service:remote_qps_5m
+        expr: sum by (service, transport, target_service) (label_replace(rate({__name__=~".*_remote_requests_total"}[5m]), "service", "$1", "__name__", "(.+)_remote_requests_total"))
+
+      - record: aero:service:remote_err_qps_5m
+        expr: sum by (service, transport, target_service) (label_replace(rate({__name__=~".*_remote_requests_total", status="err"}[5m]), "service", "$1", "__name__", "(.+)_remote_requests_total"))
+
+      - record: aero:service:remote_err_rate_5m
+        expr: aero:service:remote_err_qps_5m / clamp_min(aero:service:remote_qps_5m, 1e-9)
+
+      - record: aero:service:remote_p95_5m
+        expr: histogram_quantile(0.95, sum by (le, service, transport, target_service) (label_replace(rate({__name__=~".*_remote_request_duration_seconds_bucket"}[5m]), "service", "$1", "__name__", "(.+)_remote_request_duration_seconds_bucket")))
+
+  - name: aero-runtime
+    rules:
+      - alert: AeroGoroutinesHighWarning
+        expr: aero:service:go_goroutines_current > 2000
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "goroutine 数量过高（warning）"
+          description: "service={{ $labels.service }} 当前 goroutine={{ $value }}，连续 10m 高于阈值 2000。"
+          action: "检查最近发布、慢请求、外部依赖抖动与阻塞栈。"
+
+      - alert: AeroGoroutinesHighCritical
+        expr: aero:service:go_goroutines_current > 4000
+        for: 10m
+        labels:
+          severity: critical
+        annotations:
+          summary: "goroutine 数量过高（critical）"
+          description: "service={{ $labels.service }} 当前 goroutine={{ $value }}，连续 10m 高于阈值 4000，存在服务雪崩风险。"
+          action: "立即限流/降级，抓取 goroutine profile，定位泄漏点。"
+
+      - alert: AeroGoroutinesSpikeWarning
+        expr: aero:service:go_goroutines_current > (avg_over_time(aero:service:go_goroutines_current[30m]) * 1.8)
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "goroutine 数量异常抬升（warning）"
+          description: "service={{ $labels.service }} 当前值相对 30m 均值抬升超过 1.8 倍，可能存在协程泄漏或阻塞。"
+          action: "对比正常时段，定位新增异步路径和超时配置。"
+
+      - alert: AeroGoroutinesSpikeCritical
+        expr: aero:service:go_goroutines_current > (avg_over_time(aero:service:go_goroutines_current[30m]) * 2.5)
+        for: 10m
+        labels:
+          severity: critical
+        annotations:
+          summary: "goroutine 数量异常抬升（critical）"
+          description: "service={{ $labels.service }} 当前值相对 30m 均值抬升超过 2.5 倍，疑似异常风暴或协程泄漏。"
+          action: "立即排查热点接口与下游故障，必要时回滚或熔断。"
+
+      - alert: AeroGCPauseTooHighWarning
+        expr: aero:service:go_gc_pause_5m > 0.2
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "GC 暂停时间偏高（warning）"
+          description: "service={{ $labels.service }} 5 分钟内 GC pause 累计超过 200ms，可能影响请求延迟。"
+          action: "检查最近对象分配激增与大对象分配热点。"
+
+      - alert: AeroGCPauseTooHighCritical
+        expr: aero:service:go_gc_pause_5m > 0.5
+        for: 10m
+        labels:
+          severity: critical
+        annotations:
+          summary: "GC 暂停时间偏高（critical）"
+          description: "service={{ $labels.service }} 5 分钟内 GC pause 累计超过 500ms，延迟风险显著。"
+          action: "立即排查分配热点并结合 pprof 定位问题代码。"
+
+      - alert: AeroHeapAllocGrowingFastWarning
+        expr: (max_over_time(aero:service:go_heap_alloc_bytes[30m]) - min_over_time(aero:service:go_heap_alloc_bytes[30m])) > 5e+08
+        for: 15m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Heap Alloc 持续增长（warning）"
+          description: "service={{ $labels.service }} 30 分钟窗口 Heap Alloc 增长超过 500MB，请排查对象堆积或内存泄漏。"
+          action: "确认缓存策略、批量任务与请求体大小是否异常。"
+
+      - alert: AeroHeapAllocGrowingFastCritical
+        expr: (max_over_time(aero:service:go_heap_alloc_bytes[30m]) - min_over_time(aero:service:go_heap_alloc_bytes[30m])) > 1e+09
+        for: 15m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Heap Alloc 持续增长（critical）"
+          description: "service={{ $labels.service }} 30 分钟窗口 Heap Alloc 增长超过 1GB，疑似内存泄漏风险高。"
+          action: "立即触发应急处置，导出 heap profile 并评估回滚。"
+
+      - alert: AeroHeapInuseRatioHighWarning
+        expr: (aero:service:go_heap_inuse_bytes / clamp_min(aero:service:go_heap_alloc_bytes, 1)) > 0.9
+        for: 15m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Heap Inuse 占比偏高（warning）"
+          description: "service={{ $labels.service }} inuse/alloc 持续高于 0.9，可能存在内存碎片或释放不及时。"
+          action: "结合 QPS 与延迟趋势，判断是否为瞬时峰值。"
+
+      - alert: AeroHeapInuseRatioHighCritical
+        expr: (aero:service:go_heap_inuse_bytes / clamp_min(aero:service:go_heap_alloc_bytes, 1)) > 0.95
+        for: 15m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Heap Inuse 占比偏高（critical）"
+          description: "service={{ $labels.service }} inuse/alloc 持续高于 0.95，内存压力接近上限。"
+          action: "立即评估扩容或降载，并排查大对象生命周期。"
+
+  - name: aero-rpc-runtime
+    rules:
+      - alert: AeroRPCErrorRateWarning
+        expr: aero:service:remote_err_rate_5m > 0.01
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "RPC 错误率偏高（warning）"
+          description: "service={{ $labels.service }} transport={{ $labels.transport }} target={{ $labels.target_service }}，5m 错误率={{ $value }} 超过 1%。"
+          action: "排查下游稳定性、重试风暴、超时配置。"
+
+      - alert: AeroRPCErrorRateCritical
+        expr: aero:service:remote_err_rate_5m > 0.03
+        for: 10m
+        labels:
+          severity: critical
+        annotations:
+          summary: "RPC 错误率偏高（critical）"
+          description: "service={{ $labels.service }} transport={{ $labels.transport }} target={{ $labels.target_service }}，5m 错误率={{ $value }} 超过 3%。"
+          action: "立即降级/熔断问题下游，必要时回滚。"
+
+      - alert: AeroRPCLatencyP95Warning
+        expr: aero:service:remote_p95_5m > 0.3
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "RPC 延迟偏高（warning）"
+          description: "service={{ $labels.service }} transport={{ $labels.transport }} target={{ $labels.target_service }}，P95={{ $value }}s 超过 300ms。"
+          action: "检查下游热点接口、线程池、连接池和超时预算。"
+
+      - alert: AeroRPCLatencyP95Critical
+        expr: aero:service:remote_p95_5m > 0.8
+        for: 10m
+        labels:
+          severity: critical
+        annotations:
+          summary: "RPC 延迟偏高（critical）"
+          description: "service={{ $labels.service }} transport={{ $labels.transport }} target={{ $labels.target_service }}，P95={{ $value }}s 超过 800ms。"
+          action: "立即限流与熔断，切换降级链路。"

@@ -1,45 +1,56 @@
-# my global config
+# Aero 裸机 / Docker Prometheus 配置（非 K8s）
+#
+# 前置：aero 服务已开启 metrics（见 metrics.default.json / config.yaml），默认暴露在 :9090/metrics。
+#
+# 启动示例（在 aero 仓库根目录）：
+#   prometheus --config.file=example/config/prometheus.standalone.yaml --web.listen-address=:9091
+#
+# 注意：aero metrics 占用 9090，Prometheus UI 请改用 9091（或其它端口），避免冲突。
+#
+# 浏览器访问：
+#   Prometheus UI  → http://127.0.0.1:9091
+#   原始指标端点   → http://127.0.0.1:9090/metrics
+#
+# Grafana 看板（可选）：
+#   导入 grafana.aero-runtime-dashboard.json，变量 metric_prefix 填 example（与 server_name 一致）
+
 global:
-  scrape_interval: 15s # Set the scrape interval to every 15 seconds. Default is every 1 minute. 
-  evaluation_interval: 15s # Evaluate rules every 15 seconds. The default is every 1 minute.     
-  # scrape_timeout is set to the global default (10s).
+  scrape_interval: 15s
+  evaluation_interval: 15s
 
-# Alertmanager configuration
-alerting:
-  alertmanagers:
-    - static_configs:
-        - targets:
-          # - alertmanager:9093
+# 需要告警通知时，单独部署 Alertmanager 后取消注释（可参考 alertmanager.runtime.yaml）
+# alerting:
+#   alertmanagers:
+#     - static_configs:
+#         - targets: ["127.0.0.1:9093"]
 
-# Load rules once and periodically evaluate them according to the global 'evaluation_interval'.  
 rule_files:
-  # - "first_rules.yml"
-  # - "second_rules.yml"
+  - prometheus.rules.runtime.yaml
+  # 有 MQ 指标时再加载；无 MQ 可注释掉下一行
+  - prometheus.rules.mq.yaml
 
-# A scrape configuration containing exactly one endpoint to scrape:
-# Here it's Prometheus itself.
 scrape_configs:
-  # The job name is added as a label `job=<job_name>` to any timeseries scraped from this config.
-  - job_name: "prometheus"
-
-    # metrics_path defaults to '/metrics'
-    # scheme defaults to 'http'.
-
+  - job_name: prometheus
     static_configs:
-      - targets: ["localhost:9090"]
+      - targets: ["127.0.0.1:9091"]
 
-  # # 动态加载
-  # - job_name: "dynamic"
-  #   file_sd_configs:
-  #   - files:
-  #      - "/etc/prometheus/sd_config/*.json"
-
-  # 服务
-  - job_name: 'user'
+  - job_name: aero
+    metrics_path: /metrics
     static_configs:
-      # 采集地址
-      - targets: ['gdp_go:8000']
+      - targets: ["127.0.0.1:9090"]
         labels:
-          # 标签
-          app: 'user-api'
-          env: 'test'
+          service: example
+          env: local
+    # Docker Desktop 抓宿主机 aero 时，可改为：
+    #   - targets: ["host.docker.internal:9090"]
+
+  # 多服务时按端口或地址追加 target，service 标签与 server_name 对应（影响指标前缀）
+  # - job_name: aero
+  #   metrics_path: /metrics
+  #   static_configs:
+  #     - targets: ["127.0.0.1:9090"]
+  #       labels:
+  #         service: example
+  #     - targets: ["127.0.0.1:9091"]
+  #       labels:
+  #         service: order
