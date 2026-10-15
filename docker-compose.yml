@@ -502,11 +502,11 @@ services:
     container_name: ${PACKAGE}jaeger
     environment:
       TZ: "${TZ}"
-      COLLECTOR_OTLP_ENABLED: "true"
-      COLLECTOR_OTLP_GRPC_HOST_PORT: "0.0.0.0:4317"
+      JAEGER_LISTEN_HOST: "0.0.0.0"
     ports:
       - "${JAEGER_WEB_PORT}:16686"    # 设置容器16686端口映射指定宿主机端口，用于宿主机访问可视化web
-      - "${JAEGER_PORT}:4317"
+      - "${JAEGER_GRPC_PORT}:4317"
+      - "${JAEGER_HTTP_PORT}:4318"
     networks:
       - gdp
     restart: always
