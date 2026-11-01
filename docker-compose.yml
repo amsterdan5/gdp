@@ -362,6 +362,8 @@ services:
     volumes:
       - ${LOG_DIR}/emqx/:/opt/emqx/log
       - ${DATA_DIR}/emqx/:/opt/emqx/data
+      - ${EMQX_CONF_FILE}:/opt/emqx/etc/emqx.conf
+      - ${EMQX_SSL_CERTIFICATE_DIR}:/opt/emqx/etc/cert
     networks:
       - gdp
 
@@ -498,7 +500,7 @@ services:
     build:
       context: ./services/jaeger
       args:
-        JAEGER_VERSION: ${JAEGER_VERSION}
+        JAEGER_VERSION: "${JAEGER_VERSION}"
     container_name: ${PACKAGE}jaeger
     environment:
       TZ: "${TZ}"
